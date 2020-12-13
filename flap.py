@@ -52,6 +52,7 @@ def draw_score(game_active):
         screen.blit(score_surface, score_rect)
 
 
+# init pygame
 pygame.init()
 pygame.display.set_caption("FlapPy Bird")
 clock = pygame.time.Clock()
@@ -75,7 +76,7 @@ score_per_cycle = 1 / (framerate ** 2) * 100
 bird_colour = random.choice(["blue", "red", "yellow"])
 pipe_colour = random.choice(["green", "red"])
 
-
+# load assets
 background = pygame.image.load(
     f"assets/background-{random.choice(['night', 'day'])}.png"
 ).convert()
@@ -96,18 +97,23 @@ swoosh_sound = pygame.mixer.Sound("sound/sfx_swooshing.wav")
 
 pipe_surface = pygame.image.load(f"assets/pipe-{pipe_colour}.png").convert()
 pipe_surface_inv = pygame.transform.flip(pipe_surface, False, True)
+
+# init pipes logic
 SPAWNPIPE = pygame.USEREVENT
 pygame.time.set_timer(SPAWNPIPE, framerate * 10)
 pipes = [spawn_pipe()]
 
 
-# game loop
+# GAME LOOP
 while True:
     # event loop
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        # controls:
+        # UP to flap wings
+        # SPACE to restart game after dying
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 bird_dy = -jump_impulse
@@ -126,10 +132,14 @@ while True:
     # draw background
     screen.blit(background, (0, 0))
 
-    # draw pipes
+    # draw, animate pipes, then despawn old pipes
     for pipe in pipes:
         screen.blit(pipe_surface, pipe[0])
         screen.blit(pipe_surface_inv, pipe[1])
+        if game_active:
+            pipe[0].centerx -= 1
+            pipe[1].centerx -= 1
+    pipes = [pipe for pipe in pipes if pipe[0].right > -30]
 
     # draw floor
     screen.blit(floor_surface, (floor_x, H - 112))
@@ -147,12 +157,6 @@ while True:
         game_active = check_collisions(pipes)
 
     if game_active:
-        # animate and despawn pipes
-        for pipe in pipes:
-            pipe[0].centerx -= 1
-            pipe[1].centerx -= 1
-        pipes = [pipe for pipe in pipes if pipe[0].right > -30]
-
         # animate bird
         bird_rect.centery += bird_dy
         bird_dy += g
