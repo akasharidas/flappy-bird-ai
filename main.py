@@ -24,6 +24,18 @@ def spawn_pipe():
     return pipe_rect, pipe_rect_inv
 
 
+def update_score():
+    global score, score_timeout
+    for pipe in pipes:
+        if bird_start_x - 5 < pipe[0].centerx and pipe[0].centerx < bird_start_x + 5:
+            if not score_timeout:
+                score += 1
+                point_sound.play()
+            score_timeout = True
+            return
+    score_timeout = False
+
+
 def draw_score(game_active):
     if game_active:
         score_surface = font.render(f"{int(score)}", False, (255, 255, 255))
@@ -58,6 +70,7 @@ jump_impulse = 4
 pipe_spacing_y = 150
 score = 0
 high_score = 0
+score_timeout = False
 score_per_cycle = 1 / (framerate ** 2) * 100
 bird_colour = random.choice(["blue", "red", "yellow"])
 pipe_colour = random.choice(["green", "red"])
@@ -150,7 +163,8 @@ while True:
         if floor_x <= -W:
             floor_x = 0
 
-        score += 0.01
+        # score
+        update_score()
         high_score = max(int(score), high_score)
 
     else:
