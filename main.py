@@ -5,9 +5,11 @@ import random
 
 def check_collisions(pipes):
     if bird_rect.top <= -100 or bird_rect.bottom >= H - 112:
+        die_sound.play()
         return False
     for pipe in pipes:
         if bird_rect.colliderect(pipe[0]) or bird_rect.colliderect(pipe[1]):
+            die_sound.play()
             return False
     return True
 
@@ -24,21 +26,22 @@ def spawn_pipe():
 
 def draw_score(game_active):
     if game_active:
-        score_surface = font.render(f"{int(score)}", True, (255, 255, 255))
+        score_surface = font.render(f"{int(score)}", False, (255, 255, 255))
         score_rect = score_surface.get_rect(center=(W // 2, 50))
         screen.blit(score_surface, score_rect)
 
     else:
-        score_surface = font.render(f"Score: {int(score)}", True, (255, 255, 255))
+        score_surface = font.render(f"Score: {int(score)}", False, (255, 255, 255))
         score_rect = score_surface.get_rect(center=(W // 2, 50))
         screen.blit(score_surface, score_rect)
 
-        score_surface = font.render(f"High score: {int(high_score)}", True, (0, 0, 0))
+        score_surface = font.render(f"High score: {int(high_score)}", False, (0, 0, 0))
         score_rect = score_surface.get_rect(center=(W // 2, H - 50))
         screen.blit(score_surface, score_rect)
 
 
 pygame.init()
+pygame.display.set_caption("FlapPy Bird")
 clock = pygame.time.Clock()
 W, H = (int(0.5 * i) for i in (576, 1024))
 screen = pygame.display.set_mode((W, H))
@@ -49,7 +52,7 @@ game_active = True
 framerate = 144
 g = 0.125
 bird_start_x = 50
-bird_start_y = H // 2
+bird_start_y = H // 3
 bird_max_dy = 6
 jump_impulse = 4
 pipe_spacing_y = 150
@@ -73,6 +76,11 @@ bird_surface = pygame.image.load(f"assets/{bird_colour}bird-upflap.png").convert
 bird_rect = bird_surface.get_rect(center=(bird_start_x, bird_start_y))
 bird_dy = 0
 
+flap_sound = pygame.mixer.Sound("sound/sfx_wing.wav")
+die_sound = pygame.mixer.Sound("sound/sfx_hit.wav")
+point_sound = pygame.mixer.Sound("sound/sfx_point.wav")
+swoosh_sound = pygame.mixer.Sound("sound/sfx_swooshing.wav")
+
 pipe_surface = pygame.image.load(f"assets/pipe-{pipe_colour}.png").convert()
 pipe_surface_inv = pygame.transform.flip(pipe_surface, False, True)
 SPAWNPIPE = pygame.USEREVENT
@@ -90,7 +98,10 @@ while True:
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 bird_dy = -jump_impulse
+                if game_active:
+                    flap_sound.play()
             if event.key == pygame.K_SPACE and not game_active:
+                swoosh_sound.play()
                 game_active = True
                 pipes = []
                 bird_rect.centery = bird_start_y
@@ -123,10 +134,11 @@ while True:
         game_active = check_collisions(pipes)
 
     if game_active:
-        # animate pipes
+        # animate and despawn pipes
         for pipe in pipes:
             pipe[0].centerx -= 1
             pipe[1].centerx -= 1
+        pipes = [pipe for pipe in pipes if pipe[0].right > -30]
 
         # animate bird
         bird_rect.centery += bird_dy
