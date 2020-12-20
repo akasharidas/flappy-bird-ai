@@ -10,6 +10,11 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode((W, H))
 font = pygame.font.Font("assets/04B_19.ttf", 30)
 
+# init game variables
+game_active = True
+framerate = 144
+g = 0.125
+
 
 class Bird:
     start_x = 50
@@ -109,17 +114,17 @@ class Score:
         cls.high_score = max(int(cls.score), cls.high_score)
 
     @classmethod
-    def draw(cls, game_active):
+    def draw(cls, game_active, x=W // 2, y=50):
         if game_active:
             score_surface = font.render(f"{int(cls.score)}", False, (255, 255, 255))
-            score_rect = score_surface.get_rect(center=(W // 2, 50))
+            score_rect = score_surface.get_rect(center=(x, y))
             screen.blit(score_surface, score_rect)
 
         else:
             score_surface = font.render(
                 f"Score: {int(cls.score)}", False, (255, 255, 255)
             )
-            score_rect = score_surface.get_rect(center=(W // 2, 50))
+            score_rect = score_surface.get_rect(center=(x, y))
             screen.blit(score_surface, score_rect)
 
             score_surface = font.render(
@@ -170,11 +175,6 @@ class GameOverScreen:
 
 
 if __name__ == "__main__":
-    # init game variables
-    game_active = True
-    framerate = 144
-    g = 0.125
-
     # init pipes logic
     SPAWNPIPE = pygame.USEREVENT
     pygame.time.set_timer(SPAWNPIPE, framerate * 10)
