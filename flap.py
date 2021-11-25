@@ -173,6 +173,13 @@ class GameOverScreen:
     def draw(cls):
         screen.blit(cls.game_over_surface, cls.game_over_rect)
 
+def reset_and_delay():
+    for _ in range(120):
+        Background.draw()
+        floor.draw()
+        bird.draw()
+        pygame.display.update()
+        clock.tick(framerate)
 
 if __name__ == "__main__":
     # init pipes logic
@@ -183,6 +190,8 @@ if __name__ == "__main__":
     floor = Floor()
     bird = Bird()
 
+    reset_and_delay()
+    
     # GAME LOOP
     while True:
         # event loop
@@ -206,6 +215,7 @@ if __name__ == "__main__":
                     bird.rect.centery = Bird.start_y
                     bird.dy = 0
                     Score.reset()
+                    reset_and_delay()
             if event.type == SPAWNPIPE:
                 pipes.append(Pipe())
 
